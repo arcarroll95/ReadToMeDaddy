@@ -1,0 +1,45 @@
+**Interventional psychiatry is best understood as two tracks.** The **urgency track** is for illness that is dangerous now: psychotic depression, catatonia, life-threatening refusal of food or fluids, and severe suicidality. Here ECT, or sometimes ketamine, is chosen first because the treatment needs to be fast and reliable. The **resistance track** is for depression that has failed about two adequate medication trials. Here TMS, esketamine or ketamine, and pharmacologic augmentation compete, and ECT stays available..[1][2][3]
+
+What each intervention has proven:
+
+- **ECT** remains the most reliably effective acute treatment, especially for inpatients, older adults, and psychotic depression. The two head-to-head trials against ketamine only partly agree: in inpatients ECT gave higher remission than ketamine (63% vs 46%), while in nonpsychotic, mostly outpatient TRD ketamine was noninferior.[4][3][5]
+- **Esketamine** is the only FDA-approved glutamatergic treatment. Its indications are TRD, alone or with an oral antidepressant, and depressive symptoms in MDD with acute suicidal ideation. Its label states that it has **not** been shown to prevent suicide.[6][7]
+- **IV racemic ketamine** is legal off-label practice, not an approved psychiatric treatment.[8]
+- **TMS** is FDA-cleared. Theta-burst protocols took sessions from 37.5 minutes to about 3 minutes with equal outcomes.[9][10]
+- **Psilocybin** has positive phase 2 trials alongside one 2026 phase 2b trial that missed its primary endpoint. It remains **investigational, federally Schedule I, and available only through research**.[11][12][13]
+
+**1. The clinical problem: when interventions enter**
+
+**Defining treatment resistance.** No single definition is universally accepted:
+
+- **Common research and regulatory definition:** failure of at least two antidepressants at adequate dose for at least 4–6 weeks each. "Failure" usually means less than 25–50% improvement.[1]
+- **Delphi consensus for trials:** at least two failures with less than 25% improvement. Partial response (25% to under 50%) is a separate category, "partially responsive depression," which can be diagnosed after a single trial.[2]
+- **How variable the field is:** Of 155 published definitions, only about half required two failures. Many "TRD" trials enrolled patients after just one failed treatment, so trial populations are not interchangeable.[2]
+- **Guideline language differs:** NICE dropped "treatment resistance" as pejorative in favor of stepped care, and the APA guideline speaks of partial responders and non-responders.[14]
+- **Eligibility for interventions depends on the definition.** Esketamine trials required 25% or less improvement on two or more antidepressants, documented by questionnaire and records. They excluded psychosis, bipolar disorder, recent moderate-to-severe substance use, and recent suicidality.[15]
+- **Bipolar depression has its own definition.** The ISBD task force (2025) defines it as an inadequate response (less than 50% reduction) to two approved bipolar-depression treatments, such as quetiapine, lurasidone, olanzapine/fluoxetine, cariprazine, or lumateperone, each given at adequate dose and duration.[16]
+
+**Rule out pseudo-resistance first.** Before labeling depression "resistant," check for:
+
+- Nonadherence.
+- Misdiagnosis, especially unrecognized bipolar disorder.
+- Comorbid anxiety, substance use, or personality disorder.
+- Inadequate dose or duration.[1]
+
+After one or two failures, standard options are raising the dose, switching, combining antidepressants, or augmenting with an atypical antipsychotic, lithium, or a stimulant-type agent.[1]
+**2. Ketamine and esketamine**
+
+**Mechanism: what is established and what is inferred.** Ketamine is a noncompetitive NMDA receptor antagonist. Esketamine, the S-enantiomer, binds NMDA receptors with 3–4 times the affinity of arketamine, the R-enantiomer.[8]
+
+**10A. Comparison table**
+
+| Intervention | Mechanism | US regulatory status | Best-supported use | Course / onset | Durability | Key risks | Texas access (verify) | References |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ECT | Generalized seizure; mechanism uncertain | FDA-regulated device; standard of care | Severe, psychotic, inpatient, late-life depression; catatonia; bipolar depression | 2–3×/week, ~6–12 sessions; days–weeks | High relapse without continuation or maintenance treatment | Anesthesia risk; transient amnesia; possible persistent autobiographical gaps | Widely available | [3], [4], [5], [18] |
+| IV ketamine | NMDA antagonism → glutamate/AMPA/BDNF plasticity | Off-label | Nonpsychotic TRD; rapid relief of suicidal ideation | ~6 infusions over 2 wk; hours | Days–weeks per dose; repeat dosing needed | Dissociation, hypertension, misuse, cystitis | Infusion clinics, academic centers | [3], [22], [23] |
+
+### References
+
+1. Major depressive disorder. Marx W, Penninx BWJH, Solmi M, et al. Nature Reviews. Disease Primers. 2023;9(1):44. doi:10.1038/s41572-023-00454-1.
+2. A Delphi-method-based consensus guideline for definition of treatment-resistant depression for clinical trials. Sforzini L, Worrell C, Kose M, et al. Molecular Psychiatry. 2022;27(3):1286-1299. doi:10.1038/s41380-021-01381-x.
+3. Ketamine versus ECT for Nonpsychotic Treatment-Resistant Major Depression. Anand A, Mathew SJ, Sanacora G, et al. The New England Journal of Medicine. 2023;388(25):2315-2325. doi:10.1056/NEJMoa2302399.
