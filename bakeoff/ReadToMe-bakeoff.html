@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReadToMe Voice Bake-off</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #eef1f0; --panel: #fff; --ink: #17222a; --muted: #5b6970; --line: #d6dddb; --accent: #1d5c78; --accent-ink: #fff;
+  --good: #2f7d4f; --warn: #b7791f; --bad: #b4443a; --mark: rgba(29, 92, 120, 0.1); --hl: rgba(206, 236, 74, 0.55);
+  --f-read: "Newsreader", Georgia, serif; --f-ui: "Instrument Sans", system-ui, "Segoe UI", sans-serif; --f-mono: "IBM Plex Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #121a1f; --panel: #1a242a; --ink: #e3e9ea; --muted: #94a3a8; --line: #2b3940; --accent: #6fb6d6; --accent-ink: #0d1418;
+    --good: #5cc28a; --warn: #e0a84a; --bad: #e27a6f; --mark: rgba(111, 182, 214, 0.16); --hl: rgba(206, 236, 74, 0.3); color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-ui); }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 28px 16px 80px; display: flex; flex-direction: column; gap: 22px; }
+h1 { font: 600 24px/1.2 var(--f-ui); margin: 0; }
+h2 { font: 600 11px/1 var(--f-ui); text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin: 0 0 12px; }
+p { margin: 0; }
+.lead { color: var(--muted); max-width: 70ch; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.btn { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 7px 12px; cursor: pointer; font: 500 14px var(--f-ui); }
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+select { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+.passages { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.passage { font: 400 18px/1.6 var(--f-read); }
+.passage .s { border-radius: 3px; transition: background 0.15s; }
+.passage .s.now { background: var(--hl); }
+.spoken { margin-top: 10px; font: 400 13px/1.5 var(--f-mono); color: var(--muted); }
+.spoken b { font: 600 10px/1 var(--f-ui); letter-spacing: 0.1em; text-transform: uppercase; margin-right: 8px; }
+.speeds { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+table { width: 100%; border-collapse: collapse; }
+.tablewrap { overflow-x: auto; }
+th { text-align: left; font: 600 11px/1 var(--f-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--f-mono); font-size: 13px; white-space: nowrap; }
+.voice b { display: block; }
+.voice small { color: var(--muted); }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font: 600 12px/1.4 var(--f-ui); border: 1px solid currentColor; }
+.pill.good { color: var(--good); } .pill.warn { color: var(--warn); } .pill.bad { color: var(--bad); }
+.stars { display: inline-flex; gap: 2px; }
+.stars button { border: 0; background: none; cursor: pointer; font-size: 20px; line-height: 1; color: var(--line); padding: 0 1px; }
+.stars button.on { color: #e0a32e; }
+td input[type=text] { width: 100%; min-width: 140px; font: inherit; font-size: 13px; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+#log { font: 12px/1.5 var(--f-mono); color: var(--muted); white-space: pre-wrap; max-height: 160px; overflow: auto; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+#results { width: 100%; min-height: 120px; font: 12px/1.5 var(--f-mono); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 10px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ReadToMe voice bake-off</h1>
+    <p class="lead">Every voice reads the same medical passage after the pronunciation pipeline has cleaned it. The voices run on your own computer, so nothing you test leaves it. The first load downloads the voice model (about 90–330 MB) once, and later visits reuse it.</p>
+  </header>
+
+  <section class="card">
+    <h2>How to run it (about 15 minutes, headphones on)</h2>
+    <ol class="steps">
+      <li>Click <b>Load voices</b>. Wait for the status to say ready.</li>
+      <li>For each voice, click <b>Generate</b>. That times how fast your computer makes the audio.</li>
+      <li>Listen at <b>2×</b> and <b>3.5×</b>. Rate each voice 1–5 and jot a note if something sounds off.</li>
+      <li>Do it on both the Surface and the Alienware if you can. Then click <b>Copy results</b> and paste them to Claude.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2>Passage</h2>
+    <div class="passages" id="passage-btns"></div>
+    <div class="passage" id="passage"></div>
+    <div class="spoken" id="spoken"></div>
+  </section>
+
+  <section class="card">
+    <div class="row" style="justify-content: space-between; margin-bottom: 12px">
+      <h2 style="margin: 0">Voices</h2>
+      <div class="row">
+        <span class="speeds" id="speeds"></span>
+        <button class="btn primary" id="load">Load voices</button>
+      </div>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Voice</th><th>Generate</th><th>Speed</th><th>Play</th><th>Rating</th><th>Notes</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="lead" style="margin-top: 10px; font-size: 13px">Speed = how many seconds of audio your computer makes per second. You need <b>4×</b> or more to listen at 4× without pauses. Green is 6× or more, amber is 4–6×, red is under 4×.</p>
+  </section>
+
+  <section class="card">
+    <h2>Status</h2>
+    <div id="log">Not loaded yet.</div>
+  </section>
+
+  <section class="card">
+    <div class="row" style="justify-content: space-between; margin-bottom: 10px">
+      <h2 style="margin: 0">Results</h2>
+      <button class="btn" id="copy">Copy results</button>
+    </div>
+    <textarea id="results" readonly aria-label="Results to paste to Claude"></textarea>
+  </section>
+</div>
+
+<script type="module">
+const PASSAGES = {"textbook": {"display": "A high-potency FGA (e.g., haloperidol, 5\u201310 mg/day) or an SGA (e.g., risperidone, 4\u20136 mg/day; olanzapine, 10\u201320 mg/day) is recommended as an initial choice for the treatment of acute psychosis. Most FGAs are metabolized by CYP2D6, and 5%\u201310% of patients are poor metabolizers. With haloperidol, optimal response appears with serum concentrations between 5 and 15 ng/mL.", "spoken": "A high potency F G A (for example, haloperidol, 5 to 10 milligrams per day) or an S G A (for example, risperidone, 4 to 6 milligrams per day; olanzapine, 10 to 20 milligrams per day) is recommended as an initial choice for the treatment of acute psychosis. Most F G A's are metabolized by see why pee 2 D 6, and 5 to 10 percent of patients are poor metabolizers. With haloperidol, optimal response appears with serum concentrations between 5 and 15 nanograms per milliliter."}, "paper": {"display": "Large-scale genome-wide association studies (GWAS) involving up to 500,000 persons with MDD have shown very small effects (OR <1.05) of several common genetic variants. The estimated heritability of MDD is ~37%, which is lower than that of most other mental disorders. Lower levels of brain-derived neurotrophic factor (BDNF) have been reported in people with depression.", "spoken": "Large scale genome wide association studies (gee wass) involving up to 500,000 persons with M D D have shown very small effects (odds ratio less than 1.05) of several common genetic variants. The estimated heritability of M D D is about 37 percent, which is lower than that of most other mental disorders. Lower levels of brain derived neurotrophic factor (B D N F) have been reported in people with depression."}, "evidence": {"display": "In stable remitters, relapse was 26.7% on continued esketamine vs 45.3% after switching to placebo (HR 0.49; NNT 6).[25] Theta-burst protocols cut rTMS sessions from 37.5 minutes to about 3 minutes, with response rates of 49% versus 47%.[9] Esketamine requires at least 2 hours of observation at a REMS-certified site.", "spoken": "In stable remitters, relapse was 26.7 percent on continued esketamine versus 45.3 percent after switching to placebo (hazard ratio 0.49; number needed to treat 6). Theta burst protocols cut R T M S sessions from 37.5 minutes to about 3 minutes, with response rates of 49 percent versus 47 percent. Esketamine requires at least 2 hours of observation at a rems certified site."}}
+;
+const PASSAGE_LABEL = { textbook: 'Textbook dosing', paper: 'Journal paper', evidence: 'OpenEvidence stats' };
+const KOKORO_URL = 'https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm';
+const MODEL = 'onnx-community/Kokoro-82M-v1.0-ONNX';
+const SPEEDS = [1, 1.5, 2, 2.5, 3, 3.5, 4];
+
+const VOICES = [
+  { id: 'kokoro-heart', engine: 'kokoro', voice: 'af_heart', name: 'Kokoro · Heart', note: 'US female, warm (Kokoro’s best-rated)' },
+  { id: 'kokoro-bella', engine: 'kokoro', voice: 'af_bella', name: 'Kokoro · Bella', note: 'US female, bright' },
+  { id: 'kokoro-nicole', engine: 'kokoro', voice: 'af_nicole', name: 'Kokoro · Nicole', note: 'US female, soft, close-mic' },
+  { id: 'kokoro-michael', engine: 'kokoro', voice: 'am_michael', name: 'Kokoro · Michael', note: 'US male' },
+  { id: 'kokoro-fenrir', engine: 'kokoro', voice: 'am_fenrir', name: 'Kokoro · Fenrir', note: 'US male, deeper' },
+  { id: 'kokoro-emma', engine: 'kokoro', voice: 'bf_emma', name: 'Kokoro · Emma', note: 'UK female' },
+  { id: 'kokoro-george', engine: 'kokoro', voice: 'bm_george', name: 'Kokoro · George', note: 'UK male' },
+  { id: 'system', engine: 'system', voice: null, name: 'Built-in voice', note: 'Your browser’s own voices, for comparison. Open this page in Edge to hear its Natural voices.' },
+];
+
+const $ = (s) => document.querySelector(s);
+const state = load();
+let passageKey = 'textbook';
+let speed = 2;
+let tts = null;
+let device = null;
+const clips = {}; // voice id -> { url, gen, dur }
+let player = null;
+
+function load() { try { return JSON.parse(localStorage.getItem('rtm.bakeoff')) ?? {}; } catch { return {}; } }
+function save() { try { localStorage.setItem('rtm.bakeoff', JSON.stringify(state)); } catch {} renderResults(); }
+function log(msg) { const el = $('#log'); el.textContent = (el.textContent === 'Not loaded yet.' ? '' : el.textContent + '\n') + msg; el.scrollTop = el.scrollHeight; }
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+function renderPassage() {
+  $('#passage-btns').innerHTML = Object.keys(PASSAGES).map((k) => `<button class="btn ${k === passageKey ? 'on' : ''}" data-k="${k}">${PASSAGE_LABEL[k]}</button>`).join('');
+  const sents = PASSAGES[passageKey].display.split(/(?<=[.!?](?:\[\d+\])?)\s+/);
+  $('#passage').innerHTML = sents.map((s, i) => `<span class="s" data-i="${i}">${esc(s)}</span>`).join(' ');
+  $('#spoken').innerHTML = `<b>Voice says</b>${esc(PASSAGES[passageKey].spoken)}`;
+}
+$('#passage-btns').addEventListener('click', (e) => {
+  const k = e.target.closest('button')?.dataset.k; if (!k) return;
+  passageKey = k; for (const id in clips) { URL.revokeObjectURL(clips[id].url); delete clips[id]; }
+  stop(); renderPassage(); renderRows();
+});
+
+function renderSpeeds() {
+  $('#speeds').innerHTML = SPEEDS.map((s) => `<button class="btn ${s === speed ? 'on' : ''}" data-s="${s}">${s}×</button>`).join('');
+}
+$('#speeds').addEventListener('click', (e) => {
+  const s = Number(e.target.closest('button')?.dataset.s); if (!s) return;
+  speed = s; renderSpeeds(); if (player instanceof HTMLAudioElement) player.playbackRate = s;
+});
+
+function speedPill(rtf) {
+  if (rtf == null) return '<span style="color:var(--muted)">–</span>';
+  const cls = rtf >= 6 ? 'good' : rtf >= 4 ? 'warn' : 'bad';
+  return `<span class="pill ${cls}">${rtf.toFixed(1)}×</span>`;
+}
+
+function renderRows() {
+  const sysVoices = speechSynthesis.getVoices().filter((v) => v.lang.startsWith('en'));
+  $('#rows').innerHTML = VOICES.map((v) => {
+    const r = state[v.id] ?? {};
+    const c = clips[v.id];
+    const isSys = v.engine === 'system';
+    const gen = isSys ? '<span style="color:var(--muted);font-size:13px">instant</span>'
+      : `<button class="btn" data-act="gen" data-id="${v.id}" ${tts ? '' : 'disabled'}>${c ? 'Again' : 'Generate'}</button>`;
+    const sysPick = isSys ? `<br><select data-act="sysvoice" aria-label="Built-in voice">${sysVoices.map((sv) => `<option ${state.sysVoice === sv.name ? 'selected' : ''}>${esc(sv.name)}</option>`).join('') || '<option>No voices found</option>'}</select>` : '';
+    const rtf = isSys ? null : (c ? c.dur / c.gen : r.rtf?.[passageKey] ?? null);
+    return `<tr>
+      <td class="voice"><b>${esc(v.name)}</b><small>${esc(v.note)}</small>${sysPick}</td>
+      <td>${gen}</td>
+      <td class="num">${speedPill(rtf)}${c ? `<br><small>${c.gen.toFixed(1)}s for ${c.dur.toFixed(1)}s</small>` : ''}</td>
+      <td><button class="btn" data-act="play" data-id="${v.id}" ${isSys || c ? '' : 'disabled'}>Play</button> <button class="btn" data-act="stop">Stop</button></td>
+      <td><span class="stars">${[1, 2, 3, 4, 5].map((n) => `<button data-act="rate" data-id="${v.id}" data-n="${n}" class="${(r.rating ?? 0) >= n ? 'on' : ''}" aria-label="${n} stars">★</button>`).join('')}</span></td>
+      <td><input type="text" data-act="note" data-id="${v.id}" value="${esc(r.note ?? '')}" placeholder="e.g. mumbles at 3.5×"></td>
+    </tr>`;
+  }).join('');
+}
+speechSynthesis.addEventListener?.('voiceschanged', renderRows);
+
+$('#rows').addEventListener('click', async (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  const { act, id, n } = b.dataset;
+  if (act === 'gen') await generate(id);
+  if (act === 'play') play(id);
+  if (act === 'stop') stop();
+  if (act === 'rate') { state[id] = { ...(state[id] ?? {}), rating: Number(n) }; save(); renderRows(); }
+});
+$('#rows').addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.dataset.act === 'note') { state[t.dataset.id] = { ...(state[t.dataset.id] ?? {}), note: t.value }; save(); }
+  if (t.dataset.act === 'sysvoice') { state.sysVoice = t.value; save(); }
+});
+
+async function loadKokoro() {
+  $('#load').disabled = true;
+  try {
+    log('Loading the voice library…');
+    const { KokoroTTS } = await import(KOKORO_URL);
+    const hasGPU = !!navigator.gpu && !!(await navigator.gpu.requestAdapter().catch(() => null));
+    device = hasGPU ? 'webgpu' : 'wasm';
+    const dtype = hasGPU ? 'fp32' : 'q8';
+    log(`Downloading the Kokoro model (${dtype}, runs on ${hasGPU ? 'your graphics chip' : 'your processor'}). First time only…`);
+    let lastPct = -10;
+    tts = await KokoroTTS.from_pretrained(MODEL, {
+      dtype, device,
+      progress_callback: (p) => {
+        if (p.status === 'progress' && p.total > 1e6) {
+          const pct = Math.floor(p.progress);
+          if (pct >= lastPct + 10) { lastPct = pct; log(`  ${p.file}: ${pct}%`); }
+        }
+      },
+    });
+    state.device = device; save();
+    log(`Ready. Running on ${device === 'webgpu' ? 'the graphics chip (WebGPU)' : 'the processor (WASM)'}. Click Generate on a voice.`);
+    $('#load').textContent = 'Loaded';
+    renderRows();
+  } catch (err) {
+    log(`Couldn't load the voices: ${err?.message ?? err}\nCopy this message to Claude.`);
+    $('#load').disabled = false;
+  }
+}
+$('#load').addEventListener('click', loadKokoro);
+
+async function generate(id) {
+  const v = VOICES.find((x) => x.id === id);
+  const btn = document.querySelector(`[data-act=gen][data-id="${id}"]`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Working…'; }
+  try {
+    const t0 = performance.now();
+    const audio = await tts.generate(PASSAGES[passageKey].spoken, { voice: v.voice });
+    const gen = (performance.now() - t0) / 1000;
+    const dur = audio.audio.length / audio.sampling_rate;
+    if (clips[id]) URL.revokeObjectURL(clips[id].url);
+    clips[id] = { url: URL.createObjectURL(audio.toBlob()), gen, dur };
+    const r = state[id] ?? {};
+    state[id] = { ...r, rtf: { ...(r.rtf ?? {}), [passageKey]: +(dur / gen).toFixed(2) } };
+    save();
+    log(`${v.name}: ${dur.toFixed(1)}s of audio in ${gen.toFixed(1)}s (${(dur / gen).toFixed(1)}× real time).`);
+  } catch (err) {
+    log(`${v.name} failed: ${err?.message ?? err}`);
+  }
+  renderRows();
+}
+
+function sentenceTimer(totalSec) {
+  // approximate sentence highlight: split the clip by character share
+  const spans = [...document.querySelectorAll('#passage .s')];
+  const lens = spans.map((s) => s.textContent.length);
+  const sum = lens.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  const bounds = lens.map((l) => (acc += l) / sum * totalSec);
+  return (t) => spans.forEach((s, i) => s.classList.toggle('now', t < bounds[i] && (i === 0 || t >= bounds[i - 1])));
+}
+
+function play(id) {
+  stop();
+  if (id === 'system') {
+    const u = new SpeechSynthesisUtterance(PASSAGES[passageKey].spoken);
+    const sv = speechSynthesis.getVoices().find((v) => v.name === state.sysVoice) ?? speechSynthesis.getVoices().find((v) => v.lang.startsWith('en'));
+    if (sv) u.voice = sv;
+    u.rate = Math.min(speed, 10);
+    player = u;
+    speechSynthesis.speak(u);
+    return;
+  }
+  const c = clips[id]; if (!c) return;
+  const a = new Audio(c.url);
+  a.preservesPitch = true;
+  a.playbackRate = speed;
+  const mark = sentenceTimer(c.dur);
+  a.ontimeupdate = () => mark(a.currentTime);
+  a.onended = () => mark(1e9);
+  player = a;
+  a.play();
+}
+function stop() {
+  if (player instanceof HTMLAudioElement) { player.pause(); player = null; }
+  speechSynthesis.cancel();
+  document.querySelectorAll('#passage .s.now').forEach((s) => s.classList.remove('now'));
+}
+
+function renderResults() {
+  const lines = [`ReadToMe bake-off — ${navigator.userAgent.includes('Edg/') ? 'Edge' : 'Chrome'}, ${state.device ?? 'not loaded'}, ${navigator.hardwareConcurrency} CPU threads`];
+  for (const v of VOICES) {
+    const r = state[v.id]; if (!r) continue;
+    const rtf = r.rtf ? Object.entries(r.rtf).map(([k, x]) => `${k} ${x}×`).join(', ') : '';
+    lines.push(`- ${v.name}${v.id === 'system' && state.sysVoice ? ` (${state.sysVoice})` : ''}: ${r.rating ? r.rating + '/5' : 'unrated'}${rtf ? `; speed ${rtf}` : ''}${r.note ? `; "${r.note}"` : ''}`);
+  }
+  $('#results').value = lines.join('\n');
+}
+$('#copy').addEventListener('click', async () => {
+  renderResults();
+  try { await navigator.clipboard.writeText($('#results').value); $('#copy').textContent = 'Copied'; }
+  catch { $('#results').select(); $('#copy').textContent = 'Press Ctrl+C'; }
+  setTimeout(() => ($('#copy').textContent = 'Copy results'), 1800);
+});
+
+renderPassage(); renderSpeeds(); renderRows(); renderResults();
+</script>
+</body>
+</html>

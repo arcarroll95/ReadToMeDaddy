@@ -5,7 +5,7 @@ A read-along for medical PDFs and pasted text. It shows the real page, highlight
 ## Status
 - [x] Text pipeline: PDF layout (two-column papers, sidebars), cleanup, sentence splitting, medical pronunciation
 - [x] Preview page (`dist/preview.html`): see what will be read, what's skipped and why, and how each sentence is pronounced
-- [ ] Voice benchmark (Kokoro / Piper, local) on the Surface and the Alienware
+- [x] Voice bake-off page (`bakeoff/ReadToMe-bakeoff.html`): times Kokoro on your machine and collects ratings
 - [ ] Listening bake-off
 - [ ] Chrome extension v1
 
