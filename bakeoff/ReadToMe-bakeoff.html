@@ -85,6 +85,10 @@ td input[type=text] { width: 100%; min-width: 140px; font: inherit; font-size: 1
       <h2 style="margin: 0">Voices</h2>
       <div class="row">
         <span class="speeds" id="speeds"></span>
+        <select id="model" aria-label="Model size">
+          <option value="small">Small model · 90 MB · processor</option>
+          <option value="full">Full model · 330 MB · graphics chip</option>
+        </select>
         <button class="btn primary" id="load">Load voices</button>
       </div>
     </div>
@@ -226,17 +230,24 @@ async function loadKokoro() {
   try {
     log('Loading the voice library…');
     const { KokoroTTS } = await import(KOKORO_URL);
-    const hasGPU = !!navigator.gpu && !!(await navigator.gpu.requestAdapter().catch(() => null));
+    const wantFull = $('#model').value === 'full';
+    const hasGPU = wantFull && !!navigator.gpu && !!(await navigator.gpu.requestAdapter().catch(() => null));
+    if (wantFull && !hasGPU) log('No usable graphics chip found in this browser, so using the small model.');
     device = hasGPU ? 'webgpu' : 'wasm';
     const dtype = hasGPU ? 'fp32' : 'q8';
-    log(`Downloading the Kokoro model (${dtype}, runs on ${hasGPU ? 'your graphics chip' : 'your processor'}). First time only…`);
+    log(`Downloading the Kokoro model (${hasGPU ? '330 MB, runs on your graphics chip' : '90 MB, runs on your processor'}). First time only…`);
     let lastPct = -10;
+    let lastLog = 0;
     const opts = (dtype, device) => ({
       dtype, device,
       progress_callback: (p) => {
         if (p.status === 'progress' && p.total > 1e6) {
           const pct = Math.floor(p.progress);
-          if (pct >= lastPct + 10) { lastPct = pct; log(`  ${p.file}: ${pct}%`); }
+          const now = performance.now();
+          if (pct >= lastPct + 5 || now - lastLog > 4000) {
+            lastPct = pct; lastLog = now;
+            log(`  ${p.file}: ${pct}% (${(p.loaded / 1e6).toFixed(0)} of ${(p.total / 1e6).toFixed(0)} MB)`);
+          }
         }
       },
     });
