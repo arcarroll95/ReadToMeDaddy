@@ -99,6 +99,27 @@ dialog textarea { width: 100%; min-height: 260px; border: 1px solid var(--line);
 #lex-list .x { margin-left: auto; border: 0; background: none; cursor: pointer; color: var(--muted); font-size: 16px; }
 .dlg-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 
+
+dialog.wide { width: min(720px, calc(100vw - 24px)); }
+.small { font-size: 12.5px; margin: 0 0 8px; }
+.choices { display: flex; flex-direction: column; gap: 6px; }
+.choice { display: grid; grid-template-columns: auto auto 1fr; gap: 10px; align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; }
+.choice.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.choice code, .druglist code, .tryrows code { font: 12.5px/1.4 ui-monospace, Consolas, monospace; color: var(--muted); overflow-wrap: anywhere; }
+.choice b { font-weight: 600; font-size: 13px; }
+.play { border: 1px solid var(--line); background: var(--panel); border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 11px; flex: none; }
+.play:hover { border-color: var(--accent); }
+.play.busy { opacity: .5; }
+.labrow { display: flex; gap: 8px; margin: 8px 0; }
+.labrow input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 7px; padding: 7px 10px; background: var(--bg); }
+.druglist { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; max-height: 240px; overflow-y: auto; }
+.druglist li { display: grid; grid-template-columns: auto minmax(110px, 160px) 1fr auto; gap: 10px; align-items: center; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.druglist .linkish, .tryrows .linkish { border: 0; background: none; color: var(--accent); cursor: pointer; font-weight: 500; padding: 2px 4px; }
+.tryrows { display: flex; flex-direction: column; gap: 6px; }
+.tryrow { display: grid; grid-template-columns: auto 140px 1fr auto; gap: 10px; align-items: center; }
+.tryrow input { border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; background: var(--bg); min-width: 0; font: 13px ui-monospace, Consolas, monospace; }
+@media (max-width: 600px) { .druglist li, .tryrow { grid-template-columns: auto 1fr; } }
+
 @media (max-width: 860px) {
   .player { grid-template-columns: 1fr; }
   .meters { grid-template-columns: 1fr 1fr; }
@@ -115,6 +136,7 @@ dialog textarea { width: 100%; min-height: 260px; border: 1px solid var(--line);
   <label class="btn primary" for="file">Open PDF</label>
   <input type="file" id="file" accept="application/pdf,.pdf" hidden>
   <button type="button" class="btn" id="paste-open">Paste text</button>
+  <button type="button" class="btn" id="lab-open">Pronunciation lab</button>
   <button type="button" class="btn" id="settings-open">Settings</button>
 </header>
 <p id="status" role="status" hidden></p>
@@ -225,6 +247,37 @@ dialog textarea { width: 100%; min-height: 260px; border: 1px solid var(--line);
   </form>
   <ul id="lex-list"></ul>
   <div class="dlg-row"><button type="button" class="btn primary" id="settings-close">Done</button></div>
+</dialog>
+
+
+<dialog id="lab" class="wide">
+  <h2>Pronunciation lab</h2>
+  <p class="muted">Press ▶ to hear the voice at your current speed. Your choices apply to everything it reads.</p>
+
+  <h3>Abbreviations</h3>
+  <p class="muted small">Which way are spelled-out abbreviations clearest? Example: “SSRIs, ECT and rTMS are options in TRD.”</p>
+  <div id="lab-letters" class="choices"></div>
+
+  <h3>Drug names</h3>
+  <p class="muted small">Built-in list of about 350 drugs. Try both ways of feeding it to the voice.</p>
+  <div id="lab-respell" class="choices"></div>
+  <div class="labrow">
+    <input id="drug-search" type="search" placeholder="Search the drug list (e.g. quetiapine)" aria-label="Search the drug list">
+  </div>
+  <ul id="drug-list" class="druglist"></ul>
+
+  <h3>Try any word</h3>
+  <div class="labrow">
+    <input id="try-word" placeholder="Word or abbreviation (e.g. lurasidone, MADRS)" aria-label="Word to try">
+  </div>
+  <div id="try-rows" class="tryrows"></div>
+
+  <h3>My fixes</h3>
+  <ul id="fix-list" class="druglist"></ul>
+  <div class="dlg-row">
+    <button type="button" class="btn" id="fix-copy">Copy my fixes</button>
+    <button type="button" class="btn primary" id="lab-close">Done</button>
+  </div>
 </dialog>
 
 <script type="module" src="app.js"></script>

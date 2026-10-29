@@ -10,6 +10,8 @@ import { pdfToPages } from '../core/pdf/pdfjs.ts';
 import type { Block, PageInput, Reading, Sentence, SkipSettings } from '../core/types.ts';
 import { DEFAULT_SKIPS } from '../core/types.ts';
 import { LETTERS, WORD } from '../core/pronounce/lexicon.ts';
+import { DRUGS, renderRespelling } from '../core/pronounce/drugs.ts';
+import { speak, type LettersStyle, type RespellStyle } from '../core/pronounce/speak.ts';
 import { hashKey } from './audio-store.ts';
 import { KokoroBackend, MockBackend, Narrator, type Mode } from './narrator.ts';
 
@@ -31,10 +33,12 @@ interface Settings {
   lookAheadMin: number;
   catchUpMin: number;
   quality: 'full' | 'small';
+  lettersStyle: LettersStyle;
+  respellStyle: RespellStyle;
   skips: SkipSettings;
   lexicon: Record<string, string>;
 }
-const DEFAULTS: Settings = { voice: 'af_heart', speed: 2, lookAheadMin: 5, catchUpMin: 3, quality: 'full', skips: DEFAULT_SKIPS, lexicon: {} };
+const DEFAULTS: Settings = { voice: 'af_heart', speed: 2, lookAheadMin: 5, catchUpMin: 3, quality: 'full', lettersStyle: 'words', respellStyle: 'hyphen', skips: DEFAULT_SKIPS, lexicon: {} };
 function loadSettings(): Settings {
   try {
     const s = JSON.parse(localStorage.getItem('rtm.settings') ?? '{}');
@@ -113,7 +117,7 @@ async function openText(text: string, name: string) {
 async function rebuild(fresh: boolean) {
   if (!doc) return;
   const keepSid = !fresh && order[narrator.index] ? order[narrator.index] : null;
-  reading = toReading(doc.blocks, doc.kind === 'pdf' ? doc.pages.length : 0, settings.skips, settings.lexicon);
+  reading = toReading(doc.blocks, doc.kind === 'pdf' ? doc.pages.length : 0, settings.skips, settings.lexicon, voiceOpts());
   order = reading.sentences;
   let start = fresh ? loadPosition(doc.id) : 0;
   if (keepSid) {
@@ -577,7 +581,170 @@ function wire() {
   });
 }
 
+
+// ---------- pronunciation lab ----------
+const voiceOpts = () => ({ lettersStyle: settings.lettersStyle, respellStyle: settings.respellStyle });
+const LETTER_SAMPLE = 'SSRIs, ECT and rTMS are options in TRD.';
+const LETTER_STYLES: [LettersStyle, string][] = [
+  ['words', 'Letter names (default)'],
+  ['words-hyphen', 'Letter names, joined'],
+  ['spaced', 'Spaced capitals'],
+  ['dotted', 'Dotted capitals'],
+];
+const RESPELL_SAMPLE = 'Switch from quetiapine to aripiprazole, then add lamotrigine.';
+const RESPELL_STYLES: [RespellStyle, string][] = [
+  ['hyphen', 'Joined syllables (default)'],
+  ['spaced', 'Separate syllables'],
+];
+
+function sayWith(text: string, extra: Partial<Parameters<typeof speak>[1]> = {}) {
+  return speak(text, { stripCitations: true, userLexicon: settings.lexicon, ...voiceOpts(), ...extra });
+}
+
+async function playText(btn: HTMLElement, text: string) {
+  btn.classList.add('busy');
+  try {
+    await narrator.sample(text);
+  } catch (e) {
+    setStatus(`Couldn't play that: ${(e as Error)?.message ?? e}`, true);
+  } finally {
+    btn.classList.remove('busy');
+  }
+}
+
+function renderLab() {
+  $('#lab-letters').innerHTML = LETTER_STYLES.map(([k, label]) => {
+    const text = sayWith(LETTER_SAMPLE, { lettersStyle: k });
+    return `<label class="choice ${settings.lettersStyle === k ? 'on' : ''}"><input type="radio" name="letters" value="${k}" ${settings.lettersStyle === k ? 'checked' : ''}><button type="button" class="play" data-say="${esc(text)}" aria-label="Play ${esc(label)}">▶</button><span><b>${esc(label)}</b><br><code>${esc(text)}</code></span></label>`;
+  }).join('');
+  $('#lab-respell').innerHTML = RESPELL_STYLES.map(([k, label]) => {
+    const text = sayWith(RESPELL_SAMPLE, { respellStyle: k });
+    return `<label class="choice ${settings.respellStyle === k ? 'on' : ''}"><input type="radio" name="respell" value="${k}" ${settings.respellStyle === k ? 'checked' : ''}><button type="button" class="play" data-say="${esc(text)}" aria-label="Play ${esc(label)}">▶</button><span><b>${esc(label)}</b><br><code>${esc(text)}</code></span></label>`;
+  }).join('');
+  renderDrugList();
+  renderTry();
+  renderFixes();
+}
+
+function renderDrugList() {
+  const q = ($('#drug-search') as HTMLInputElement).value.trim().toLowerCase();
+  const names = Object.keys(DRUGS).filter((n) => !q || n.includes(q)).sort().slice(0, 60);
+  $('#drug-list').innerHTML = names.length
+    ? names
+        .map((n) => {
+          const mine = settings.lexicon[n];
+          const said = mine ?? renderRespelling(DRUGS[n], settings.respellStyle);
+          return `<li><button type="button" class="play" data-say="${esc(said)}" aria-label="Play ${esc(n)}">▶</button><span>${esc(n)}</span><code>${esc(mine ? `${mine} (your fix)` : DRUGS[n])}</code><button type="button" class="linkish" data-fix="${esc(n)}">Fix</button></li>`;
+        })
+        .join('')
+    : '<li class="muted">Not in the list yet. Type it under “Try any word” to add your own.</li>';
+}
+
+function renderTry() {
+  const w = ($('#try-word') as HTMLInputElement).value.trim();
+  if (!w) {
+    $('#try-rows').innerHTML = '<p class="muted small">Type a word above to compare how it sounds.</p>';
+    return;
+  }
+  const guess = speak(w, { stripCitations: true, useDrugList: false, ...voiceOpts() });
+  const current = sayWith(w);
+  const key = w.toLowerCase();
+  const mine = settings.lexicon[w] ?? settings.lexicon[key];
+  $('#try-rows').innerHTML = `
+    <div class="tryrow"><button type="button" class="play" data-say="${esc(guess)}" aria-label="Play the voice's own guess">▶</button><b>Voice’s own guess</b><code>${esc(guess)}</code><span></span></div>
+    <div class="tryrow"><button type="button" class="play" data-say="${esc(current)}" aria-label="Play what it says now">▶</button><b>What it says now</b><code>${esc(current)}${mine ? ' (your fix)' : DRUGS[key] ? ' (drug list)' : ''}</code><span></span></div>
+    <div class="tryrow"><button type="button" class="play" id="try-custom-play" aria-label="Play your version">▶</button><b>Your version</b><input id="try-custom" value="${esc(mine ?? current)}" aria-label="How it should sound"><button type="button" class="btn" id="try-save">Save</button></div>
+    <p class="muted small">Sound it out with hyphens, like “loo-RAS-ih-dohn” (capitals are fine, they're just for you). Spaces work too.</p>`;
+}
+
+function renderFixes() {
+  const rows = Object.entries(settings.lexicon);
+  $('#fix-list').innerHTML = rows.length
+    ? rows
+        .map(([k, v]) => {
+          const said = v === LETTERS ? 'spell letters' : v === WORD ? 'say as a word' : v;
+          return `<li><button type="button" class="play" data-say="${esc(sayWith(k))}" aria-label="Play ${esc(k)}">▶</button><span>${esc(k)}</span><code>${esc(said)}</code><button type="button" class="linkish" data-remove="${esc(k)}">Remove</button></li>`;
+        })
+        .join('')
+    : '<li class="muted">None yet.</li>';
+}
+
+function wireLab() {
+  const dlg = $('#lab') as HTMLDialogElement;
+  $('#lab-open').addEventListener('click', () => {
+    const sel = window.getSelection()?.toString().trim();
+    if (sel && sel.length < 40) ($('#try-word') as HTMLInputElement).value = sel;
+    renderLab();
+    dlg.showModal();
+  });
+  $('#lab-close').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    const play = t.closest<HTMLElement>('.play');
+    if (play?.dataset.say) {
+      e.preventDefault();
+      void playText(play, play.dataset.say);
+      return;
+    }
+    if (play?.id === 'try-custom-play') {
+      e.preventDefault();
+      const raw = ($('#try-custom') as HTMLInputElement).value.trim();
+      if (raw) void playText(play, raw.toLowerCase());
+      return;
+    }
+    const fix = t.closest<HTMLElement>('[data-fix]')?.dataset.fix;
+    if (fix) {
+      ($('#try-word') as HTMLInputElement).value = fix;
+      renderTry();
+      $('#try-word').scrollIntoView({ block: 'center' });
+      return;
+    }
+    const rm = t.closest<HTMLElement>('[data-remove]')?.dataset.remove;
+    if (rm) {
+      const { [rm]: _gone, ...rest } = settings.lexicon;
+      settings.lexicon = rest;
+      saveSettings();
+      renderLab();
+      void rebuild(false);
+      return;
+    }
+    if (t.id === 'try-save') {
+      const w = ($('#try-word') as HTMLInputElement).value.trim();
+      const v = ($('#try-custom') as HTMLInputElement).value.trim().toLowerCase();
+      if (!w || !v) return;
+      const key = /^[A-Z0-9]+s?$/.test(w) ? w : w.toLowerCase(); // keep case for abbreviations
+      settings.lexicon = { ...settings.lexicon, [key]: v };
+      saveSettings();
+      renderLab();
+      void rebuild(false);
+      setStatus(`Saved: ${w} → ${v}. Ready.`);
+    }
+  });
+  dlg.addEventListener('change', (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.name === 'letters') settings.lettersStyle = t.value as LettersStyle;
+    else if (t.name === 'respell') settings.respellStyle = t.value as RespellStyle;
+    else return;
+    saveSettings();
+    renderLab();
+    void rebuild(false);
+  });
+  $('#drug-search').addEventListener('input', renderDrugList);
+  $('#try-word').addEventListener('input', renderTry);
+  $('#fix-copy').addEventListener('click', async () => {
+    const text = Object.entries(settings.lexicon).map(([k, v]) => `${k} = ${v}`).join('\n') || '(no fixes yet)';
+    try {
+      await navigator.clipboard.writeText(text);
+      $('#fix-copy').textContent = 'Copied';
+    } catch {
+      $('#fix-copy').textContent = 'Copy failed';
+    }
+    setTimeout(() => ($('#fix-copy').textContent = 'Copy my fixes'), 1600);
+  });
+}
+
 wire();
+wireLab();
 setSpeed(settings.speed);
 renderMode('idle');
 renderSettings();

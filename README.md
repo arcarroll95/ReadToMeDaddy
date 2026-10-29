@@ -8,6 +8,7 @@ A read-along for medical PDFs and pasted text. It shows the real page, highlight
 - [x] Voice bake-off page (`bakeoff/ReadToMe-bakeoff.html`): times Kokoro on your machine and collects ratings
 - [x] Listening bake-off (Surface): Kokoro Heart default, Bella / George alternates; ~2.6x real time on WebGPU
 - [x] Reader v1 (`reader/`, live at https://arcarroll95.github.io/ReadToMeDaddy/): PDF + paste, Prepare, rolling look-ahead, catch-up pause, speed hint, saved audio, sentence highlighting
+- [x] Pronunciation: ~350-drug respelling list (`src/core/pronounce/drugs.ts`), abbreviation styles, Pronunciation lab in the reader
 - [ ] Alienware bake-off
 - [ ] Speed-ups (fp16 model), web pages in place (extension), scanned PDFs
 

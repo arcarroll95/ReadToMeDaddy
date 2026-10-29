@@ -22,7 +22,7 @@ A long caption about the figure that should not be read.
 test('pasted markdown: headings, lists, tables, captions, references', () => {
   const r = readPasted(text);
   const said = r.sentences.map((s) => s.spoken);
-  assert.deepEqual(said, ['Overview.', 'E C T works best for psychotic depression.', 'First bullet point.', 'Second bullet point.']);
+  assert.deepEqual(said, ['Overview.', 'ee see tee works best for psychotic depression.', 'First bullet point.', 'Second bullet point.']);
   assert.ok(r.blocks.some((b) => b.kind === 'table'));
   assert.ok(r.blocks.some((b) => b.kind === 'caption'));
   assert.ok(r.blocks.some((b) => b.kind === 'references'));

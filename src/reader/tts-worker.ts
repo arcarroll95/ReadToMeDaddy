@@ -14,6 +14,7 @@ interface TTS {
   generate(text: string, o: { voice: string }): Promise<Gen>;
 }
 let tts: TTS | null = null;
+let queue: Promise<void> = Promise.resolve();
 
 // Voice style files are fetched outside the model cache; keep our own copy.
 const realFetch = self.fetch.bind(self);
@@ -69,6 +70,11 @@ self.onmessage = async (e: MessageEvent) => {
   }
   if (m.type === 'gen') {
     if (!tts) return post({ type: 'gen-error', id: m.id, message: 'voice not loaded' });
+    // one inference at a time: the model session isn't safe to run concurrently
+    const prev = queue;
+    let done!: () => void;
+    queue = new Promise<void>((r) => (done = r));
+    await prev;
     try {
       const t0 = performance.now();
       const out = await tts.generate(m.text, { voice: m.voice });
@@ -77,6 +83,8 @@ self.onmessage = async (e: MessageEvent) => {
       post({ type: 'audio', id: m.id, pcm, sr: out.sampling_rate, ms }, [pcm.buffer]);
     } catch (err) {
       post({ type: 'gen-error', id: m.id, message: String((err as Error)?.message ?? err) });
+    } finally {
+      done();
     }
   }
 };

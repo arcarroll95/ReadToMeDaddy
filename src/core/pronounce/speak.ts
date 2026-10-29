@@ -4,9 +4,19 @@
 
 import { buildLexicon, LETTERS, SLASH_EXPANSIONS, WORD } from './lexicon.ts';
 import { isWord, hasWordList } from '../words.ts';
+import { lookupDrug, renderRespelling } from './drugs.ts';
+
+export type LettersStyle = 'spaced' | 'dotted' | 'words' | 'words-hyphen';
+export type RespellStyle = 'hyphen' | 'spaced';
 
 export interface SpeakOptions {
   stripCitations: boolean;
+  /** how spelled-out abbreviations are written for the voice: "E C T", "E.C.T.", "ee see tee", "ee-see-tee" */
+  lettersStyle?: LettersStyle;
+  /** how built-in drug respellings are written for the voice */
+  respellStyle?: RespellStyle;
+  /** use the built-in drug pronunciation list (default true) */
+  useDrugList?: boolean;
   /** user's own entries: written form -> spoken form ('@letters' / '@word' allowed) */
   userLexicon?: Record<string, string>;
 }
@@ -50,8 +60,27 @@ function plural(n: string): boolean {
   return !/^1(\.0+)?$/.test(n.replace(/,/g, ''));
 }
 
-function spellLetters(s: string): string {
-  return s.toUpperCase().split('').join(' ');
+const LETTER_WORDS: Record<string, string> = {
+  A: 'ay', B: 'bee', C: 'see', D: 'dee', E: 'ee', F: 'eff', G: 'gee', H: 'aitch', I: 'eye', J: 'jay', K: 'kay', L: 'el', M: 'em',
+  N: 'en', O: 'oh', P: 'pee', Q: 'cue', R: 'ar', S: 'ess', T: 'tee', U: 'you', V: 'vee', W: 'double you', X: 'ex', Y: 'why', Z: 'zee',
+};
+let lettersStyle: LettersStyle = 'words';
+
+function spellLetters(s: string, plural = false): string {
+  const letters = s.toUpperCase().replace(/[^A-Z]/g, '').split('');
+  if (!letters.length) return s;
+  switch (lettersStyle) {
+    case 'spaced':
+      return letters.join(' ') + (plural ? "'s" : '');
+    case 'dotted':
+      return letters.join('.') + '.' + (plural ? "'s" : '');
+    case 'words':
+    case 'words-hyphen': {
+      const ws = letters.map((l) => LETTER_WORDS[l]);
+      if (plural) ws[ws.length - 1] += 's';
+      return ws.join(lettersStyle === 'words' ? ' ' : '-');
+    }
+  }
 }
 
 /** Say an alphanumeric code like CYP2D6, 5-HT2A, PHQ-9, HbA1c. */
@@ -86,10 +115,10 @@ function sayAcronym(tok: string, lex: Record<string, string>): string {
     const base = m[1];
     if (base in lex) {
       const v = lex[base];
-      if (v === LETTERS) return spellLetters(base) + "'s";
+      if (v === LETTERS) return spellLetters(base, true);
       return resolve(base, v) + 's';
     }
-    if (base.length <= 4 || !/[AEIOUY]/.test(base)) return spellLetters(base) + "'s";
+    if (base.length <= 4 || !/[AEIOUY]/.test(base)) return spellLetters(base, true);
     return tok;
   }
   if (tok.length <= 4 || !/[AEIOUY]/.test(tok)) return spellLetters(tok);
@@ -103,6 +132,9 @@ const OPS: Record<string, string> = {
 
 export function speak(display: string, opts: SpeakOptions): string {
   const lex = buildLexicon(opts.userLexicon);
+  lettersStyle = opts.lettersStyle ?? 'words';
+  const useDrugs = opts.useDrugList !== false;
+  const respell = opts.respellStyle ?? 'hyphen';
   let s = ' ' + display + ' ';
 
   // user entries for multi-word or symbol phrases first (exact text)
@@ -206,6 +238,12 @@ export function speak(display: string, opts: SpeakOptions): string {
   // words: user single-token entries, codes with digits, acronyms, mixed-case acronyms
   s = s.replace(/(?<![\w'])(?:[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)(?![\w'])/g, (tok) => {
     if (opts.userLexicon && tok in opts.userLexicon) return resolve(tok, opts.userLexicon[tok]);
+    const lowerKey = tok.toLowerCase();
+    if (opts.userLexicon && lowerKey in opts.userLexicon) return resolve(tok, opts.userLexicon[lowerKey]);
+    if (useDrugs && /^[A-Za-z]+(?:'s)?$/.test(tok)) {
+      const d = lookupDrug(tok);
+      if (d) return renderRespelling(d, respell);
+    }
     if (/^\d+(st|nd|rd|th|s)$/.test(tok) || /^\d+$/.test(tok)) return tok;
     if (/\d/.test(tok) && /[A-Za-z]/.test(tok)) return sayCode(tok, lex);
     if (tok.includes('-') && hasWordList() && /^[a-z]+-[a-z]+$/.test(tok)) {
@@ -218,7 +256,7 @@ export function speak(display: string, opts: SpeakOptions): string {
     }
     if (tok in lex) return resolve(tok, lex[tok]);
     if (/^[A-Z]{2,8}s?$/.test(tok)) return sayAcronym(tok, lex);
-    if (/^[a-z]{1,3}[A-Z]{2,}[a-z]?s?$/.test(tok)) return spellLetters(tok.replace(/s$/, '')) + (tok.endsWith('s') ? "'s" : '');
+    if (/^[a-z]{1,3}[A-Z]{2,}[a-z]?s?$/.test(tok)) return spellLetters(tok.replace(/s$/, ''), tok.endsWith('s'));
     return tok;
   });
 

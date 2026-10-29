@@ -141,6 +141,30 @@ export class Narrator {
     this.pump();
   }
 
+  /** Say one bit of text right away (Pronunciation lab). Pauses reading first. */
+  private sampleAudio = new Audio();
+  async sample(text: string): Promise<void> {
+    if (this.mode === 'playing' || this.mode === 'catching-up' || this.mode === 'starting') this.pause();
+    await this.ensureBackend();
+    const key = `${this.voice}|${hashKey(text)}`;
+    const cached = await getClip(key);
+    let wav: Blob;
+    if (cached) wav = cached.wav;
+    else {
+      const { pcm, sr } = await this.backend.generate(text, this.voice);
+      const trimmed = trimSilence(pcm, sr);
+      wav = toWav(trimmed, sr);
+      void putClip({ key, wav, dur: trimmed.length / sr, at: Date.now() });
+    }
+    const url = URL.createObjectURL(wav);
+    this.sampleAudio.pause();
+    this.sampleAudio.src = url;
+    this.sampleAudio.preservesPitch = true;
+    this.sampleAudio.playbackRate = this.speed;
+    this.sampleAudio.onended = () => URL.revokeObjectURL(url);
+    await this.sampleAudio.play();
+  }
+
   /** Listening seconds of audio ready, contiguous from the current sentence. */
   aheadSec(): number {
     let s = 0;

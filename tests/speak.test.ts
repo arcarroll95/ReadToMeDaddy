@@ -6,7 +6,9 @@ import { speak } from '../src/core/pronounce/speak.ts';
 import { setWordList } from '../src/core/words.ts';
 
 setWordList(fs.readFileSync(path.join(import.meta.dirname, '../src/core/data/words.txt'), 'utf8'));
-const say = (s: string, user?: Record<string, string>) => speak(s, { stripCitations: true, userLexicon: user });
+// the classic tests pin the "E C T" letter style and leave drug names alone
+const say = (s: string, user?: Record<string, string>) =>
+  speak(s, { stripCitations: true, userLexicon: user, lettersStyle: 'spaced', useDrugList: false });
 
 test('CYP is "see why pee"', () => {
   assert.equal(say('metabolized by CYP2D6.'), 'metabolized by see why pee 2 D 6.');
@@ -54,4 +56,24 @@ test('user dictionary wins', () => {
 test('typesetting hyphen inside a word is repaired, real compounds kept', () => {
   assert.equal(say('involuntary move-ments'), 'involuntary movements');
   assert.equal(say('half-life'), 'half life');
+});
+
+test('letter styles', () => {
+  const st = (style: 'spaced' | 'dotted' | 'words' | 'words-hyphen') => speak('SSRIs and ECT', { stripCitations: true, lettersStyle: style });
+  assert.equal(st('spaced'), "S S R I's and E C T");
+  assert.equal(st('dotted'), "S.S.R.I.'s and E.C.T.");
+  assert.equal(st('words'), 'ess ess ar eyes and ee see tee');
+  assert.equal(st('words-hyphen'), 'ess-ess-ar-eyes and ee-see-tee');
+  assert.equal(speak('rTMS', { stripCitations: true, lettersStyle: 'words' }), 'ar tee em ess');
+  assert.equal(speak('CYP2D6', { stripCitations: true, lettersStyle: 'words' }), 'see why pee 2 dee 6');
+});
+test('drug names use the built-in respellings', () => {
+  const d = (s: string, respellStyle: 'hyphen' | 'spaced' = 'hyphen') => speak(s, { stripCitations: true, respellStyle });
+  assert.equal(d('Start aripiprazole today.'), 'Start air-ih-pip-ruh-zole today.');
+  assert.equal(d('Quetiapine and lithium'), 'kweh-ty-uh-peen and lith-ee-um');
+  assert.equal(d('quetiapine', 'spaced'), 'kweh ty uh peen');
+  assert.equal(d('Haloperidol, 5 mg'), 'hal-oh-pair-ih-dol, 5 milligrams');
+});
+test('a personal fix beats the built-in drug list (any case)', () => {
+  assert.equal(speak('Quetiapine', { stripCitations: true, userLexicon: { quetiapine: 'kwe tie a peen' } }), 'kwe tie a peen');
 });

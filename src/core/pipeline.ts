@@ -6,7 +6,7 @@ import { buildBlocks } from './pdf/layout.ts';
 import { classifyBlocks, mergeContinuations } from './classify.ts';
 import { pasteToBlocks } from './paste.ts';
 import { splitSentences } from './sentences.ts';
-import { isShouting, speak } from './pronounce/speak.ts';
+import { isShouting, speak, type LettersStyle, type RespellStyle } from './pronounce/speak.ts';
 import { buildLexicon } from './pronounce/lexicon.ts';
 
 export function readKindsFor(skips: SkipSettings): Set<BlockKind> {
@@ -33,6 +33,7 @@ export function toReading(
   pageCount: number,
   skips: SkipSettings = DEFAULT_SKIPS,
   userLexicon: Record<string, string> = {},
+  voiceOpts: { lettersStyle?: LettersStyle; respellStyle?: RespellStyle; useDrugList?: boolean } = {},
 ): Reading {
   const readKinds = readKindsFor(skips);
   const sentences: Sentence[] = [];
@@ -49,7 +50,7 @@ export function toReading(
         // "GENETICS AND EPIGENETICS": read as words, but keep known abbreviations
         input = display.replace(/[A-Za-z]+/g, (w) => (w in lex ? w : w.toLowerCase()));
       }
-      let spoken = speak(input, { stripCitations: skips.citations, userLexicon });
+      let spoken = speak(input, { stripCitations: skips.citations, userLexicon, ...voiceOpts });
       if (b.kind === 'heading' && spoken && !/[.!?:]$/.test(spoken)) spoken += '.'; // a beat after headings
       if (!spoken.replace(/[^A-Za-z0-9]/g, '')) continue;
       words += spoken.split(/\s+/).length;

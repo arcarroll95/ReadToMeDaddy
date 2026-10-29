@@ -16,26 +16,26 @@ export const WORD = '@word';
 
 export const CORE_LEXICON: Record<string, string> = {
   // --- said as words / custom ---
-  AIDS: WORD, NICE: WORD, REMS: 'rems', CANMAT: 'can mat', MADRS: 'mad ers', HAMD: 'ham D', HDRS: 'H D R S',
+  AIDS: WORD, NICE: WORD, REMS: 'rems', CANMAT: 'can mat', MADRS: 'mad ers', HAMD: 'ham dee', HDRS: LETTERS,
   GWAS: 'gee wass', SAINT: WORD, COVID: 'covid', PET: WORD, SPECT: 'spect', CAGE: WORD, AUDIT: WORD,
   CIWA: 'see wah', COWS: WORD, AMPA: 'am pa', GABA: 'gabba', GABAergic: 'gabba ergic', mTOR: 'em tor', JAMA: 'jamma',
   PrEP: 'prep', REM: 'rem', NREM: 'non rem', NSAID: 'en said', NSAIDs: 'en saids', STEMI: 'stemmy', NSTEMI: 'en stemmy',
   CABG: 'cabbage', APGAR: 'app gar', PEEP: WORD, CPAP: 'see pap', BiPAP: 'bye pap', ROSC: 'rosk', LVAD: 'L vad',
   RVAD: 'R vad', VAD: 'vad', SAMHSA: 'sam sah', NIDA: 'nee da', LAMA: 'lah ma', LABA: 'lah ba', SOAP: WORD,
   SIG: 'sig', SNOMED: 'snow med', HIPAA: 'hippa', PICO: 'pee ko', UpToDate: 'up to date', DSM: LETTERS,
-  CYP: 'see why pee', CYPs: 'see why pees', Hb: 'H B', HbA: 'H B A', SpO: 'S P O', FiO: 'F I O',
+  CYP: 'see why pee', CYPs: 'see why pees', Hb: LETTERS, HbA: LETTERS, SpO: LETTERS, FiO: LETTERS,
   BiPAPs: 'bye paps', ASAM: 'ay sam', NALT: LETTERS, LSMD: LETTERS, ESCAPE: WORD, ELEKT: 'elect', KetECT: 'ket E C T',
   SUSTAIN: WORD, TRANSFORM: WORD, EPISODE: WORD, BROADEN: WORD, RECLAIM: WORD, REBUS: WORD, QIDS: 'quids',
   // --- spelled ---
-  ECT: LETTERS, TMS: LETTERS, rTMS: 'R T M S', iTBS: 'I T B S', cTBS: 'C T B S', dTMS: 'D T M S', tDCS: 'T D C S',
-  fcMRI: 'F C M R I', sgACC: 'S G A C C', DLPFC: LETTERS, VNS: LETTERS, DBS: LETTERS, MST: LETTERS, SNT: LETTERS,
+  ECT: LETTERS, TMS: LETTERS, rTMS: LETTERS, iTBS: LETTERS, cTBS: LETTERS, dTMS: LETTERS, tDCS: LETTERS,
+  fcMRI: LETTERS, sgACC: LETTERS, DLPFC: LETTERS, VNS: LETTERS, DBS: LETTERS, MST: LETTERS, SNT: LETTERS,
   MDMA: LETTERS, NMDA: LETTERS, BDNF: LETTERS, TRD: LETTERS, MDD: LETTERS, SSRI: LETTERS, SNRI: LETTERS, MAOI: LETTERS,
-  TCA: LETTERS, FGA: LETTERS, SGA: LETTERS, EPS: LETTERS, NMS: LETTERS, QTc: 'Q T C', OCD: LETTERS, PTSD: LETTERS,
+  TCA: LETTERS, FGA: LETTERS, SGA: LETTERS, EPS: LETTERS, NMS: LETTERS, QTc: LETTERS, OCD: LETTERS, PTSD: LETTERS,
   ADHD: LETTERS, PMDD: LETTERS, OUD: LETTERS, AUD: LETTERS, SUD: LETTERS, MOUD: 'mood', FDA: LETTERS, DEA: LETTERS,
   APA: LETTERS, WHO: LETTERS, HPA: LETTERS, LSD: LETTERS, PCP: LETTERS, THC: LETTERS, CBD: LETTERS, MRI: LETTERS,
   EEG: LETTERS, ECG: LETTERS, EKG: LETTERS, CBT: LETTERS, DBT: LETTERS, IPT: LETTERS, EMDR: LETTERS, HIV: LETTERS,
-  HCV: LETTERS, IND: LETTERS, HDE: LETTERS, LAI: LETTERS, SSRIs: "S S R I's", SNRIs: "S N R I's", MAOIs: "M A O I's",
-  TCAs: "T C A's", FGAs: "F G A's", SGAs: "S G A's", HbA1c: 'H B A 1 C', mRNA: 'M R N A', eGFR: 'E G F R', hCG: 'H C G',
+  HCV: LETTERS, IND: LETTERS, HDE: LETTERS, LAI: LETTERS,
+  mRNA: LETTERS, eGFR: LETTERS, hCG: LETTERS,
   NNT: 'number needed to treat', NNH: 'number needed to harm',
 };
 
