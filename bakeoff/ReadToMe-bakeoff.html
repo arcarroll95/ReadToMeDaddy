@@ -206,8 +206,23 @@ $('#rows').addEventListener('change', (e) => {
   if (t.dataset.act === 'sysvoice') { state.sysVoice = t.value; save(); }
 });
 
+// log exactly which download fails (and why) so problems can be diagnosed from the Status box
+const realFetch = window.fetch.bind(window);
+window.fetch = async (input, init) => {
+  const url = typeof input === 'string' ? input : input?.url ?? String(input);
+  try {
+    const res = await realFetch(input, init);
+    if (!res.ok) log(`  ! ${res.status} ${res.statusText} for ${url}`);
+    return res;
+  } catch (err) {
+    log(`  ! blocked: ${url}\n    (${err?.message ?? err})`);
+    throw err;
+  }
+};
+
 async function loadKokoro() {
   $('#load').disabled = true;
+  log(`Page opened from: ${location.protocol === 'file:' ? 'a file on this computer' : location.origin}`);
   try {
     log('Loading the voice library…');
     const { KokoroTTS } = await import(KOKORO_URL);
@@ -216,7 +231,7 @@ async function loadKokoro() {
     const dtype = hasGPU ? 'fp32' : 'q8';
     log(`Downloading the Kokoro model (${dtype}, runs on ${hasGPU ? 'your graphics chip' : 'your processor'}). First time only…`);
     let lastPct = -10;
-    tts = await KokoroTTS.from_pretrained(MODEL, {
+    const opts = (dtype, device) => ({
       dtype, device,
       progress_callback: (p) => {
         if (p.status === 'progress' && p.total > 1e6) {
@@ -225,6 +240,15 @@ async function loadKokoro() {
         }
       },
     });
+    try {
+      tts = await KokoroTTS.from_pretrained(MODEL, opts(dtype, device));
+    } catch (err) {
+      if (device !== 'webgpu') throw err;
+      log(`Graphics-chip version failed (${err?.message ?? err}). Trying the smaller processor version…`);
+      device = 'wasm';
+      lastPct = -10;
+      tts = await KokoroTTS.from_pretrained(MODEL, opts('q8', 'wasm'));
+    }
     state.device = device; save();
     log(`Ready. Running on ${device === 'webgpu' ? 'the graphics chip (WebGPU)' : 'the processor (WASM)'}. Click Generate on a voice.`);
     $('#load').textContent = 'Loaded';
