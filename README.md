@@ -6,8 +6,10 @@ A read-along for medical PDFs and pasted text. It shows the real page, highlight
 - [x] Text pipeline: PDF layout (two-column papers, sidebars), cleanup, sentence splitting, medical pronunciation
 - [x] Preview page (`dist/preview.html`): see what will be read, what's skipped and why, and how each sentence is pronounced
 - [x] Voice bake-off page (`bakeoff/ReadToMe-bakeoff.html`): times Kokoro on your machine and collects ratings
-- [ ] Listening bake-off
-- [ ] Chrome extension v1
+- [x] Listening bake-off (Surface): Kokoro Heart default, Bella / George alternates; ~2.6x real time on WebGPU
+- [x] Reader v1 (`reader/`, live at https://arcarroll95.github.io/ReadToMeDaddy/): PDF + paste, Prepare, rolling look-ahead, catch-up pause, speed hint, saved audio, sentence highlighting
+- [ ] Alienware bake-off
+- [ ] Speed-ups (fp16 model), web pages in place (extension), scanned PDFs
 
 ## Layout
 - `src/core/` — source-agnostic pipeline (`pipeline.ts` is the entry point)
@@ -23,4 +25,6 @@ A read-along for medical PDFs and pasted text. It shows the real page, highlight
     npm test
     npm run typecheck
     npm run build:preview      # -> dist/preview.html
+    node scripts/build-reader.mjs   # -> reader/ (commit it; GitHub Pages serves it)
+    # test the reader without a voice download: reader/?mock=2  (fake voice at 2x real time)
     node scripts/dump.ts file.pdf --blocks --spoken
